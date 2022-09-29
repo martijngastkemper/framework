@@ -151,7 +151,13 @@ class MemcachedStore extends TaggableStore implements LockProvider
      */
     public function increment($key, $value = 1)
     {
-        return $this->memcached->increment($this->prefix.$key, $value);
+        $value = $this->memcached->increment($this->prefix.$key, $value);
+
+        if ($this->memcached->getResultCode() !== 0) {
+            $value = $this->memcached->set($key, $value);
+        }
+
+        return $value;
     }
 
     /**
