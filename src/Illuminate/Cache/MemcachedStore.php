@@ -151,13 +151,13 @@ class MemcachedStore extends TaggableStore implements LockProvider
      */
     public function increment($key, $value = 1)
     {
-        $value = $this->memcached->increment($this->prefix.$key, $value);
+        $result = $this->memcached->increment($this->prefix.$key, $value);
 
-        if ($this->memcached->getResultCode() !== 0) {
-            $value = $this->memcached->set($key, $value);
+        if ($this->memcached->getResultCode() === Memcached::RES_NOTFOUND) {
+            $result = $this->add($key, $value, 0);
         }
 
-        return $value;
+        return $result;
     }
 
     /**
@@ -169,7 +169,13 @@ class MemcachedStore extends TaggableStore implements LockProvider
      */
     public function decrement($key, $value = 1)
     {
-        return $this->memcached->decrement($this->prefix.$key, $value);
+        $result = $this->memcached->decrement($this->prefix.$key, $value);
+
+        if ($this->memcached->getResultCode() === Memcached::RES_NOTFOUND) {
+            $result = $this->add($key, $value, 0);
+        }
+
+        return $result;
     }
 
     /**
